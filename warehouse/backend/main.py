@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import date
 import function
-from function import PackageCreate, DispatchBatchCreate, PackageUpdate, PackageOut
+from function import PackageCreate, DispatchBatchCreate, PackageUpdate
 
 app = FastAPI()
 ROLES = ["admin", "staff"]
@@ -34,7 +33,7 @@ def register_package( package: PackageCreate ,  token = Header(None)):
     return function.register_package(name=package.name, destination=package.destination, weight=package.weight)
 
 #E2
-@app.get("/packages/{package_id}", response_model= PackageOut)
+@app.get("/packages/{package_id}")
 def get_package_details(package_id,  token = Header(None)):
     authorize(token, ["admin", "staff"]) 
     result = function.get_package_by_id(package_id)
@@ -61,14 +60,14 @@ def delete_package(package_id: int,  token = Header(None)):
     return function.delete_package(package_id=package_id)
    
 #E5
-@app.get("/packages", response_model= list[PackageOut])    
-def search_package(destination= None, status= None, arrival_date= None,  token = Header(None)):
+@app.get("/packages")    
+def search_package(destination=None, status=None, arrival_date=None,  token = Header(None)):
     authorize(token, ["admin", "staff"]) 
     return function.search_package(destination=destination, status=status, arrival_date=arrival_date)
 
 #E6
 @app.get("/dispatch-batches")
-def view_dispatchBatches(destination= None, vehicle_number= None, dispatch_status= None,  token = Header(None)):
+def view_dispatchBatches(destination=None, vehicle_number=None, dispatch_status=None , token = Header(None)):
     authorize(token, ["admin", "staff"]) 
     return function.view_dispatchBatches(destination=destination, vehicle_number=vehicle_number, dispatch_status=dispatch_status)
 

@@ -80,11 +80,7 @@ class DispatchBatchCreate(BaseModel):
     def not_blank(cls, value):
         return clean_text(value)
 
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-    
-    
+
 # used in E3 
 class PackageUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1)
@@ -102,44 +98,7 @@ class PackageUpdate(BaseModel):
     def not_blank(cls, value):
         return clean_text(value)
     
-    
-# used in E5 and E6 
-class PackageSearch(BaseModel):
-    destination: Optional[str] = None
-    status: Optional[str] = None
-    arrival_date: Optional[date] = None 
 
-    @field_validator("status")
-    @classmethod
-    def valid_status(cls, value):
-        if value is not None and value not in ["Registered", "Dispatched"]:
-            raise ValueError("Invalid status")
-        return value
-
-class DispatchBatchSearch(BaseModel):
-    destination: Optional[str] = None
-    vehicle_number: Optional[int] = None   
-    dispatch_status: Optional[str] = None
-
-    @field_validator("dispatch_status")
-    @classmethod
-    def valid_dispatch_status(cls, value):
-        if value is not None and value not in ["Pending", "Dispatched"]:
-            raise ValueError("Invalid dispatch status")
-        return value
-
-
-# used in E2, E5 and login
-class PackageOut(BaseModel):
-    package_id: int
-    name: str
-    destination: str
-    weight: int
-    arrival_date: datetime
-    status: str
-
-
-    
     
 Base.metadata.create_all(engine)
 
@@ -203,7 +162,7 @@ def delete_package(package_id):
     session.close()
     return {"message": "Package deleted successfully"}
 
-# E5 - returns an empty list if nothing matches
+# E5 
 def search_package(destination=None, status=None, arrival_date=None):
     session = Session(engine)
     query = session.query(packages)
@@ -287,8 +246,7 @@ def create_dispatchBatches(destination, vehicle_number):
     session.add(new_dispatch_batch)
     session.commit()  
 
-    for package in session.query(packages).all():
-        package.status = "Dispatched"
+    for package in session.query(packages).filter(packages.destination == destination,packages.status == "Registered",).all():
         package.dispatchBatchID = new_dispatch_batch.id
     session.commit()
     session.close()
